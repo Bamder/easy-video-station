@@ -1,0 +1,58 @@
+package com.sylong.videostation.handler;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
+import org.springframework.web.socket.BinaryMessage;
+import org.springframework.web.socket.TextMessage;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.handler.AbstractWebSocketHandler;
+
+import com.sylong.videostation.service.VideoService;
+
+@Component
+public class VideoSocketHandler extends AbstractWebSocketHandler {
+
+    private final VideoService videoService;
+
+    @Autowired
+    public VideoSocketHandler(VideoService videoService) {
+        this.videoService = videoService;
+    }
+
+    @Override
+    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+        session.sendMessage(new TextMessage("CONNECTED: Ready to stream video"));
+    }
+
+    @Override
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+        String videoName = message.getPayload();
+        Resource videoResource = videoService.loadVideo(videoName);
+        
+        if (!videoResource.exists()) {
+            session.sendMessage(new TextMessage("ERROR: Video not found"));
+            return;
+        }
+        
+        streamVideo(session, videoResource);
+    }
+
+    private void streamVideo(WebSocketSession session, Resource videoResource) throws IOException {
+        try (InputStream inputStream = videoResource.getInputStream()) {
+            byte[] buffer = new byte[1024 * 16]; // 16KB chunks
+            int bytesRead;// the total of read bytes
+            
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                byte[] chunk = new byte[bytesRead];
+                System.arraycopy(buffer, 0, chunk, 0, bytesRead);
+                session.sendMessage(new BinaryMessage(chunk));
+            }
+            
+            session.sendMessage(new TextMessage("END_OF_STREAM"));
+        }
+    }
+}
