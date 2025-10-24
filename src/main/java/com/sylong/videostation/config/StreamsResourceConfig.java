@@ -10,7 +10,7 @@ import com.sylong.videostation.util.ResourceUtils;
 
 @Configuration
 public class StreamsResourceConfig implements WebMvcConfigurer {
-  @Value("${streams.dir}")
+  @Value("${videostation.streams.dir:${streams.dir:}}")
   private String streamsDir;
 
   // When the front end requests for video resources
