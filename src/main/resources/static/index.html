@@ -59,16 +59,21 @@
         })();">
     </script>   
     <script>
-        const engName = "EzVideoStation";
-        const chnName = "轻量化视频站";
-        
         function embedText(id, text) {
             const textNode = document.createTextNode(text);
             document.getElementById(id).appendChild(textNode);
         }
-        embedText("title", `${engName}${chnName}`);
-        embedText("headerTitle", ` ${engName}`);
-        embedText("footerText", `${chnName} version 0.1`); 
+
+        fetch('/api/info/map')
+        .then(response => response.ok ? response.json() : null)
+        .then(mapData => {
+            if (!mapData) return;
+            const { engName, chnName, version } = mapData;
+            embedText("title", `${engName}${chnName}`);
+            embedText("headerTitle", ` ${engName}`);
+            embedText("footerText", `${chnName} version ${version}`); 
+        })
+        .catch(() => {});
     </script>
     <script src="index.js" type="module"></script>
 </body>

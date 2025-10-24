@@ -20,10 +20,10 @@ import com.sylong.videostation.util.ResourceUtils;
 @RequestMapping("/api/streams")
 public class StreamController {
 
-    @Value("${streams.dir:}")
+    @Value("${videostation.streams.dir:}")
     private String streamsDir;
 
-    @Value("${streams.raw.dir:}")
+    @Value("${videostation.streams.raw.dir:}")
     private String rawVideosDir;
 
     @Value("${env.var.ffmpeg:}")

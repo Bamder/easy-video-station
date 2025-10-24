@@ -1,0 +1,43 @@
+# 基础服务器配置
+server:
+  port: 8081
+  servlet:
+    context-path: /
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+spring:
+  # 静态资源处理
+  mvc:
+    static-path-pattern: /**
+  web:
+    resources:
+      static-locations:
+        - classpath:/static
+      cache:
+        period: 0
+
+# 视频站Application配置
+videostation:
+  meta:
+    eng-name: EzVideoStation
+    chn-name: 轻量化视频站
+    version: 1.2
+  streams:
+    dir: 'D:/EzVideoStation/streams/'
+    raw:
+      dir: 'D:/EzVideoStation/videos/'
+
+# 环境变量配置
+env:
+  var:
+    ffmpeg: FFMPEG_HOME
+
+# 管理端点配置
+# management:
+#   endpoints:
+#     web:
+#       exposure:
+#         include: mappings
