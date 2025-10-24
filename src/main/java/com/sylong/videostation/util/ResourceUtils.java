@@ -9,12 +9,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Value;
-
 public class ResourceUtils {
-
-    @Value("${env.FFMPEG}")
-    private static String FFMPEG_HOME;
 
     // location 为URI格式（Start with "file:///"）
     // 暴露给Spring以查找静态文件
@@ -35,19 +30,32 @@ public class ResourceUtils {
         return path.toAbsolutePath().normalize();
     }
 
-    public static void generateHlsTs(String sourceFile, String targetDir, int segmentSeconds)
+    public static void generateTSFiles(String ffmpegEnvVar, String sourceFile, String targetDir, int segmentSeconds)
             throws IOException, InterruptedException {
         Path source = Paths.get(sourceFile).toAbsolutePath().normalize();
         Path target = Paths.get(targetDir).toAbsolutePath().normalize();
+        // seg分段时间默认为4秒
+        TSFilesGenerationCore(ffmpegEnvVar, source, target, segmentSeconds > 0 ? segmentSeconds : 4);
+    }
+
+    public static void generateTSFiles(String ffmpegEnvVar, Path sourceFile, Path targetDir, int segmentSeconds)
+            throws IOException, InterruptedException {
+        Path source = sourceFile.toAbsolutePath().normalize();
+        Path target = targetDir.toAbsolutePath().normalize();
+        // seg分段时间默认为4秒
+        TSFilesGenerationCore(ffmpegEnvVar, source, target, segmentSeconds > 0 ? segmentSeconds : 4);
+    }
+
+    private static void TSFilesGenerationCore(String ffmpegEnvVar, Path source, Path target, int segmentSeconds)
+            throws IOException, InterruptedException {
+        
         Files.createDirectories(target);
 
-        String ffmpegPath = System.getenv(FFMPEG_HOME);
+        String ffmpegPath = System.getenv(ffmpegEnvVar);
         if (ffmpegPath == null || ffmpegPath.isBlank()) {
             ffmpegPath = "ffmpeg";
         }
 
-        // seg分段时间默认为4秒
-        int seg = segmentSeconds > 0 ? segmentSeconds : 4;
         List<String> cmd = new ArrayList<>();
         cmd.add(ffmpegPath);
         cmd.add("-hide_banner");
@@ -59,7 +67,7 @@ public class ResourceUtils {
         cmd.add("-start_number");
         cmd.add("0");
         cmd.add("-hls_time");
-        cmd.add(String.valueOf(seg));
+        cmd.add(String.valueOf(segmentSeconds));
         cmd.add("-hls_playlist_type");
         cmd.add("vod");
         cmd.add("-hls_segment_filename");

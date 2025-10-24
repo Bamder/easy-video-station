@@ -35,12 +35,17 @@ function playHls(playerId, videoName, setStatusFunc = null, paramList = null, sh
 
         hls.on(Hls.Events.ERROR, (evt, data) => {
             const code = data && data.response ? (data.response.code ?? data.response.status) : undefined;
-
             if (showErrorFunc) {
-                if (code === 404) {
-                    showErrorFunc('视频不存在');
-                } else {
-                    showErrorFunc(`HLS错误: ${data.type}${data.details ? ' - ' + data.details : ''}`);
+                switch(code){
+                    case 404:
+                        showErrorFunc('视频不存在');
+                        break;
+                    case 500:
+                        showErrorFunc('服务器内部错误');
+                        break;
+                    default:
+                        showErrorFunc(`HLS错误: ${data.type}${data.details ? ' - ' + data.details : ''}`);
+                        break;
                 }
             } else {
                 console.error('[playHls] HLS错误', data);
